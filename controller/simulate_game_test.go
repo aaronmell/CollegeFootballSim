@@ -94,54 +94,6 @@ func TestRunPlay(t *testing.T) {
 				AwayTeamScore:      0,
 			},
 		},
-		"SecondQuarterWhenTime0": {
-			input: GameStatus{
-				GameClockInSeconds: 0,
-				GameOver:           false,
-				Quarter:            First,
-				HomeTeamScore:      7,
-				AwayTeamScore:      0,
-			},
-			want: GameStatus{
-				GameClockInSeconds: 0,
-				GameOver:           false,
-				Quarter:            Second,
-				HomeTeamScore:      7,
-				AwayTeamScore:      0,
-			},
-		},
-		"ThirdQuarterWhenTime0": {
-			input: GameStatus{
-				GameClockInSeconds: 0,
-				GameOver:           false,
-				Quarter:            Second,
-				HomeTeamScore:      7,
-				AwayTeamScore:      0,
-			},
-			want: GameStatus{
-				GameClockInSeconds: 0,
-				GameOver:           false,
-				Quarter:            Third,
-				HomeTeamScore:      7,
-				AwayTeamScore:      0,
-			},
-		},
-		"FourthQuarterWhenTime0": {
-			input: GameStatus{
-				GameClockInSeconds: 0,
-				GameOver:           false,
-				Quarter:            Third,
-				HomeTeamScore:      7,
-				AwayTeamScore:      0,
-			},
-			want: GameStatus{
-				GameClockInSeconds: 0,
-				GameOver:           false,
-				Quarter:            Fourth,
-				HomeTeamScore:      7,
-				AwayTeamScore:      0,
-			},
-		},
 		"OvertimeWhenScoreTied": {
 			input: GameStatus{
 				GameClockInSeconds: 0,
@@ -188,4 +140,64 @@ func TestRunPlay(t *testing.T) {
 
 		})
 	}
+
+	// t.Run("Returns Gameover when time is 0 and quarter is fourth and score is not tied", func(t *testing.T) {
+	// 	gameStatus := &
+
+	// 	s1 := rand.NewSource(1)
+	// 	r1 := rand.New(s1)
+	// 	runPlay(gameStatus, r1)
+
+	// 	if gameStatus.GameOver != true {
+	// 		t.Error("Expected Gameover to be true, recieved false")
+	// 	}
+
+	// 	if gameStatus.Quarter != Fourth {
+	// 		t.Errorf("Expected quarter %d recieved %d", Fourth, gameStatus.Quarter)
+	// 	}
+	// })
+
+	// t.Run("Increments Quarter when time is 0, and quarter is less than the fourth or when quarter is 4 or greater and score is tied", func(t *testing.T) {
+	// 	cases := []struct {
+	// 		Name          string
+	// 		StartQuarter  Quarter
+	// 		EndQuarter    Quarter
+	// 		HomeTeamScore int
+	// 		AwayTeamScore int
+	// 	}{
+	// 		{First, Second},
+	// 		{Second, Third},
+	// 		{Third, Fourth},
+	// 		{Fourth, Overtime1},
+	// 	}
+
+	// 	for _, test := range cases {
+	// 		gameStatus := &GameStatus{
+	// 			GameClockInSeconds: 0,
+	// 			GameOver:           false,
+	// 			Quarter:            test.StartQuarter,
+	// 			HomeTeam: Team{
+	// 				Name: "Team1",
+	// 			},
+	// 			AwayTeam: Team{
+	// 				Name: "Team2",
+	// 			},
+	// 			HomeTeamScore: 0,
+	// 			AwayTeamScore: 0,
+	// 		}
+
+	// 		s1 := rand.NewSource(1)
+	// 		r1 := rand.New(s1)
+	// 		runPlay(gameStatus, r1)
+
+	// 		if gameStatus.GameOver == true {
+	// 			t.Errorf("Expected gameover to be false in quarter %d, was true", test)
+	// 		}
+
+	// 		if gameStatus.Quarter != test.EndQuarter {
+	// 			t.Errorf("Expected Quarter to be %d was %d", test.EndQuarter, test.StartQuarter)
+	// 		}
+
+	// 	}
+	// })
 }
