@@ -93,20 +93,10 @@ func runPlay(gs *GameStatus, r *rand.Rand) {
 		runRegulationPlay(gs, r)
 		return
 	}
-
 }
 
 func runRegulationPlay(gs *GameStatus, r *rand.Rand) {
-	if gs.GameClockInSeconds == 0 {
-		if gs.Quarter == Fourth {
-			if gs.HomeTeamScore != gs.AwayTeamScore {
-				gs.GameOver = true
-				return
-			}
-		}
-		gs.Quarter++
-		return
-	}
+	panic("unimplemented")
 }
 
 func initializeGameStatus(reqBody SimulateGameRequest) GameStatus {
