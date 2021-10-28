@@ -34,6 +34,23 @@ type GameStatus struct {
 	GameClockInSeconds int
 	HomeTeamScore      int
 	AwayTeamScore      int
+	GameLog            []GameLog
+}
+
+type GameEvent string
+
+const (
+	GameStart           GameEvent = "GameStart"
+	EndOfGame           GameEvent = "EndOfGame"
+	EndofQuarter        GameEvent = "EndOfQuater"
+	EndofRegulationPlay GameEvent = "EndofRegulationPlay"
+	PlayRan             GameEvent = "PlayRan"
+	QuarterTime         int       = 900
+)
+
+type GameLog struct {
+	Event        GameEvent
+	EventEndTime int
 }
 
 type Quarter int
@@ -73,39 +90,78 @@ func (sgc SimulateGameController) SimulateGame(c *gin.Context) {
 
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
-	for ok := true; ok; ok = gameStatus.GameOver {
-		runPlay(&gameStatus, r1)
-	}
 
-	if reqBody.HomeTeam.Overall > reqBody.AwayTeam.Overall {
-		response.Winner = reqBody.HomeTeam
-		response.Loser = reqBody.AwayTeam
-	} else {
-		response.Winner = reqBody.AwayTeam
-		response.Loser = reqBody.HomeTeam
+	for ok := true; ok; ok = gameStatus.GameOver {
+		runStep(&gameStatus, r1)
 	}
 
 	c.JSON(utils.Success.Status, response)
 }
 
-func runPlay(gs *GameStatus, r *rand.Rand) {
-	if gs.Quarter <= Fourth {
-		runRegulationPlay(gs, r)
+func runStep(gameStatus *GameStatus, r1 *rand.Rand) {
+	event := runPlay(gameStatus, r1)
+	gameStatus.GameLog = append(gameStatus.GameLog, event)
+
+	if gameOver(gameStatus) {
 		return
 	}
 
+	if advanceQuarter(gameStatus) {
+		return
+	}
 }
 
-func runRegulationPlay(gs *GameStatus, r *rand.Rand) {
-	if gs.GameClockInSeconds == 0 {
-		if gs.Quarter == Fourth {
-			if gs.HomeTeamScore != gs.AwayTeamScore {
-				gs.GameOver = true
-				return
-			}
-		}
-		gs.Quarter++
-		return
+func gameOver(gs *GameStatus) bool {
+	if gs.GameClockInSeconds != 0 {
+		return false
+	}
+
+	if gs.Quarter != Fourth {
+		return false
+	}
+
+	if gs.AwayTeamScore == gs.HomeTeamScore {
+		return false
+	}
+
+	gs.GameOver = true
+	gs.GameLog = append(gs.GameLog, GameLog{
+		Event: EndOfGame,
+	})
+
+	return true
+}
+
+func advanceQuarter(gs *GameStatus) bool {
+	if gs.GameClockInSeconds != 0 {
+		return false
+	}
+
+	if gs.Quarter > Fourth {
+		return false
+	}
+
+	gs.Quarter++
+
+	if gs.Quarter > Fourth {
+		gs.GameLog = append(gs.GameLog, GameLog{
+			Event: EndofRegulationPlay,
+		})
+
+		return true
+	}
+
+	gs.GameClockInSeconds = QuarterTime
+	gs.GameLog = append(gs.GameLog, GameLog{
+		Event: EndofQuarter,
+	})
+	return true
+}
+
+func runPlay(gs *GameStatus, r *rand.Rand) GameLog {
+	return GameLog{
+		Event:        PlayRan,
+		EventEndTime: gs.GameClockInSeconds - (r.Intn(37) + 5),
 	}
 }
 
@@ -115,6 +171,6 @@ func initializeGameStatus(reqBody SimulateGameRequest) GameStatus {
 		AwayTeam:           reqBody.AwayTeam,
 		GameOver:           false,
 		Quarter:            First,
-		GameClockInSeconds: 900,
+		GameClockInSeconds: QuarterTime,
 	}
 }
