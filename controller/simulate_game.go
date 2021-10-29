@@ -35,17 +35,29 @@ type GameStatus struct {
 	HomeTeamScore      int
 	AwayTeamScore      int
 	GameLog            []GameLog
+	HomeTeamEndZone    EndZone
+	AwayTeamEndZone    EndZone
+	CurrentPossession  TeamStatus
+	PossessionAtHalf   TeamStatus
 }
+
+type TeamStatus string
+
+type EndZone string
 
 type GameEvent string
 
 const (
-	GameStart           GameEvent = "GameStart"
-	EndOfGame           GameEvent = "EndOfGame"
-	EndofQuarter        GameEvent = "EndOfQuater"
-	EndofRegulationPlay GameEvent = "EndofRegulationPlay"
-	PlayRan             GameEvent = "PlayRan"
-	QuarterTime         int       = 900
+	GameStart           GameEvent  = "GameStart"
+	EndOfGame           GameEvent  = "EndOfGame"
+	EndofQuarter        GameEvent  = "EndOfQuater"
+	EndofRegulationPlay GameEvent  = "EndofRegulationPlay"
+	PlayRan             GameEvent  = "PlayRan"
+	QuarterTime         int        = 900
+	EastEndZone         EndZone    = "EastEndZone"
+	WestEndZone         EndZone    = "WestEndZone"
+	AwayTeam            TeamStatus = "AwayTeam"
+	HomeTeam            TeamStatus = "HomeTeam"
 )
 
 type GameLog struct {
@@ -137,8 +149,12 @@ func advanceQuarter(gs *GameStatus) bool {
 		return false
 	}
 
-	if gs.Quarter > Fourth {
+	switch gs.Quarter {
+	case Second:
+		gs.CurrentPossession = gs.PossessionAtHalf
+	case Overtime1:
 		return false
+	default:
 	}
 
 	gs.Quarter++
@@ -151,11 +167,23 @@ func advanceQuarter(gs *GameStatus) bool {
 		return true
 	}
 
+	updateEndZone(gs)
 	gs.GameClockInSeconds = QuarterTime
 	gs.GameLog = append(gs.GameLog, GameLog{
 		Event: EndofQuarter,
 	})
 	return true
+}
+
+func updateEndZone(gs *GameStatus) {
+	switch gs.HomeTeamEndZone {
+	case WestEndZone:
+		gs.HomeTeamEndZone = EastEndZone
+		gs.AwayTeamEndZone = WestEndZone
+	case EastEndZone:
+		gs.HomeTeamEndZone = WestEndZone
+		gs.AwayTeamEndZone = EastEndZone
+	}
 }
 
 func runPlay(gs *GameStatus, r *rand.Rand) GameLog {
@@ -172,5 +200,11 @@ func initializeGameStatus(reqBody SimulateGameRequest) GameStatus {
 		GameOver:           false,
 		Quarter:            First,
 		GameClockInSeconds: QuarterTime,
+		HomeTeamScore:      0,
+		AwayTeamScore:      0,
+		HomeTeamEndZone:    WestEndZone,
+		AwayTeamEndZone:    EastEndZone,
+		CurrentPossession:  HomeTeam,
+		PossessionAtHalf:   AwayTeam,
 	}
 }

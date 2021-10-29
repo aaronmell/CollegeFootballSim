@@ -62,6 +62,10 @@ func TestRunStep(t *testing.T) {
 				Quarter:            First,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
+				HomeTeamEndZone:    WestEndZone,
+				AwayTeamEndZone:    EastEndZone,
+				CurrentPossession:  HomeTeam,
+				PossessionAtHalf:   AwayTeam,
 			},
 			want: GameStatus{
 				GameClockInSeconds: 900,
@@ -69,6 +73,10 @@ func TestRunStep(t *testing.T) {
 				Quarter:            Second,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
+				HomeTeamEndZone:    EastEndZone,
+				AwayTeamEndZone:    WestEndZone,
+				CurrentPossession:  HomeTeam,
+				PossessionAtHalf:   AwayTeam,
 				GameLog: []GameLog{
 					{
 						Event: PlayRan,
@@ -86,6 +94,10 @@ func TestRunStep(t *testing.T) {
 				Quarter:            Second,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
+				HomeTeamEndZone:    EastEndZone,
+				AwayTeamEndZone:    WestEndZone,
+				CurrentPossession:  HomeTeam,
+				PossessionAtHalf:   AwayTeam,
 			},
 			want: GameStatus{
 				GameClockInSeconds: 900,
@@ -93,6 +105,10 @@ func TestRunStep(t *testing.T) {
 				Quarter:            Third,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
+				HomeTeamEndZone:    WestEndZone,
+				AwayTeamEndZone:    EastEndZone,
+				CurrentPossession:  AwayTeam,
+				PossessionAtHalf:   AwayTeam,
 				GameLog: []GameLog{
 					{
 						Event: PlayRan,
@@ -110,6 +126,10 @@ func TestRunStep(t *testing.T) {
 				Quarter:            Third,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
+				HomeTeamEndZone:    WestEndZone,
+				AwayTeamEndZone:    EastEndZone,
+				CurrentPossession:  HomeTeam,
+				PossessionAtHalf:   AwayTeam,
 			},
 			want: GameStatus{
 				GameClockInSeconds: 900,
@@ -117,6 +137,11 @@ func TestRunStep(t *testing.T) {
 				Quarter:            Fourth,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
+				HomeTeamEndZone:    EastEndZone,
+				AwayTeamEndZone:    WestEndZone,
+				CurrentPossession:  HomeTeam,
+				PossessionAtHalf:   AwayTeam,
+
 				GameLog: []GameLog{
 					{
 						Event: PlayRan,
@@ -134,6 +159,10 @@ func TestRunStep(t *testing.T) {
 				Quarter:            Fourth,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
+				HomeTeamEndZone:    WestEndZone,
+				AwayTeamEndZone:    EastEndZone,
+				CurrentPossession:  HomeTeam,
+				PossessionAtHalf:   AwayTeam,
 			},
 			want: GameStatus{
 				GameClockInSeconds: 0,
@@ -141,6 +170,10 @@ func TestRunStep(t *testing.T) {
 				Quarter:            Fourth,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
+				HomeTeamEndZone:    WestEndZone,
+				AwayTeamEndZone:    EastEndZone,
+				CurrentPossession:  HomeTeam,
+				PossessionAtHalf:   AwayTeam,
 				GameLog: []GameLog{
 					{
 						Event: PlayRan,
@@ -158,6 +191,10 @@ func TestRunStep(t *testing.T) {
 				Quarter:            Fourth,
 				HomeTeamScore:      7,
 				AwayTeamScore:      7,
+				HomeTeamEndZone:    WestEndZone,
+				AwayTeamEndZone:    EastEndZone,
+				CurrentPossession:  HomeTeam,
+				PossessionAtHalf:   AwayTeam,
 			},
 			want: GameStatus{
 				GameClockInSeconds: 0,
@@ -165,6 +202,10 @@ func TestRunStep(t *testing.T) {
 				Quarter:            Overtime1,
 				HomeTeamScore:      7,
 				AwayTeamScore:      7,
+				HomeTeamEndZone:    WestEndZone,
+				AwayTeamEndZone:    EastEndZone,
+				CurrentPossession:  HomeTeam,
+				PossessionAtHalf:   AwayTeam,
 				GameLog: []GameLog{
 					{
 						Event: PlayRan,
