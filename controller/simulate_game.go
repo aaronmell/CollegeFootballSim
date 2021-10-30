@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"college-football-sim/models"
 	"college-football-sim/utils"
 	"math/rand"
 	"time"
@@ -11,200 +12,143 @@ import (
 
 type SimulateGameController struct{}
 
-type Team struct {
-	Name    string `json:"Name" binding:"required"`
-	Overall int    `json:"Overall" binding:"required"`
+type GameClient interface {
+	RunPlay(g *models.Game, r *rand.Rand) models.GameLog
 }
 
-type SimulateGameRequest struct {
-	HomeTeam Team `json:"HomeTeam" binding:"required"`
-	AwayTeam Team `json:"AwayTeam" binding:"required"`
+type client struct {
 }
-
-type SimulateGameResponse struct {
-	Winner Team `json:"Winner" binding:"required"`
-	Loser  Team `json:"Loser" binding:"required"`
-}
-
-type GameStatus struct {
-	HomeTeam           Team
-	AwayTeam           Team
-	GameOver           bool
-	Quarter            Quarter
-	GameClockInSeconds int
-	HomeTeamScore      int
-	AwayTeamScore      int
-	GameLog            []GameLog
-	HomeTeamEndZone    EndZone
-	AwayTeamEndZone    EndZone
-	CurrentPossession  TeamStatus
-	PossessionAtHalf   TeamStatus
-}
-
-type TeamStatus string
-
-type EndZone string
-
-type GameEvent string
-
-const (
-	GameStart           GameEvent  = "GameStart"
-	EndOfGame           GameEvent  = "EndOfGame"
-	EndofQuarter        GameEvent  = "EndOfQuater"
-	EndofRegulationPlay GameEvent  = "EndofRegulationPlay"
-	PlayRan             GameEvent  = "PlayRan"
-	QuarterTime         int        = 900
-	EastEndZone         EndZone    = "EastEndZone"
-	WestEndZone         EndZone    = "WestEndZone"
-	AwayTeam            TeamStatus = "AwayTeam"
-	HomeTeam            TeamStatus = "HomeTeam"
-)
-
-type GameLog struct {
-	Event        GameEvent
-	EventEndTime int
-}
-
-type Quarter int
-
-const (
-	First Quarter = iota
-	Second
-	Third
-	Fourth
-	Overtime1
-	Overtime2
-	Overtime3
-	Overtime4
-	Overtime5
-	Overtime6
-	Overtime7
-	Overtime8
-	Overtime9
-	Overtime10
-	Overtime11
-	Overtime12
-	Overtime13
-	Overtime14
-	Overtime15
-)
 
 func (sgc SimulateGameController) SimulateGame(c *gin.Context) {
-	reqBody := SimulateGameRequest{}
+	reqBody := models.SimulateGameRequest{}
 	if err := c.ShouldBindJSON(&reqBody); err != nil {
 		log.Error().Msg(err.Error())
 		utils.ResponseFormat(c, utils.RequestParamError, nil)
 		return
 	}
 
-	response := SimulateGameResponse{}
-	gameStatus := initializeGameStatus(reqBody)
+	response := models.SimulateGameResponse{}
+	game := reqBody.InitGame()
 
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
+	client := client{}
 
-	for ok := true; ok; ok = gameStatus.GameOver {
-		runStep(&gameStatus, r1)
+	for ok := true; ok; ok = game.GameOver {
+		runStep(client, &game, r1)
 	}
 
 	c.JSON(utils.Success.Status, response)
 }
 
-func runStep(gameStatus *GameStatus, r1 *rand.Rand) {
-	event := runPlay(gameStatus, r1)
-	gameStatus.GameLog = append(gameStatus.GameLog, event)
+func runStep(c GameClient, g *models.Game, r1 *rand.Rand) {
+	event := c.RunPlay(g, r1)
+	g.GameLog = append(g.GameLog, event)
 
-	if gameOver(gameStatus) {
+	if GameOver(g) {
 		return
 	}
 
-	if advanceQuarter(gameStatus) {
+	if AdvanceQuarter(g) {
 		return
+	}
+
+	if event.Event == models.PlayRan {
+		IncrementDown(g)
 	}
 }
 
-func gameOver(gs *GameStatus) bool {
-	if gs.GameClockInSeconds != 0 {
+func (c client) RunPlay(g *models.Game, r *rand.Rand) models.GameLog {
+
+	return models.GameLog{
+		Event:        models.PlayRan,
+		EventEndTime: g.GameClockInSeconds - (r.Intn(37) + 5),
+	}
+}
+
+func GameOver(g *models.Game) bool {
+	if g.GameClockInSeconds != 0 {
 		return false
 	}
 
-	if gs.Quarter != Fourth {
+	if g.Quarter != models.Fourth {
 		return false
 	}
 
-	if gs.AwayTeamScore == gs.HomeTeamScore {
+	if g.AwayTeamScore == g.HomeTeamScore {
 		return false
 	}
 
-	gs.GameOver = true
-	gs.GameLog = append(gs.GameLog, GameLog{
-		Event: EndOfGame,
+	g.GameOver = true
+	g.GameLog = append(g.GameLog, models.GameLog{
+		Event: models.EndOfGame,
 	})
 
 	return true
 }
 
-func advanceQuarter(gs *GameStatus) bool {
-	if gs.GameClockInSeconds != 0 {
+func AdvanceQuarter(g *models.Game) bool {
+	if g.GameClockInSeconds != 0 {
 		return false
 	}
 
-	switch gs.Quarter {
-	case Second:
-		gs.CurrentPossession = gs.PossessionAtHalf
-	case Overtime1:
+	switch g.Quarter {
+	case models.Second:
+		g.CurrentPossession = g.PossessionAtHalf
+		g.CurrentDown = models.FirstDown
+	case models.Overtime1:
 		return false
 	default:
 	}
 
-	gs.Quarter++
+	g.Quarter++
 
-	if gs.Quarter > Fourth {
-		gs.GameLog = append(gs.GameLog, GameLog{
-			Event: EndofRegulationPlay,
+	if g.Quarter == models.Overtime1 {
+		g.CurrentDown = models.FirstDown
+		g.GameLog = append(g.GameLog, models.GameLog{
+			Event: models.EndofRegulationPlay,
 		})
 
 		return true
 	}
 
-	updateEndZone(gs)
-	gs.GameClockInSeconds = QuarterTime
-	gs.GameLog = append(gs.GameLog, GameLog{
-		Event: EndofQuarter,
+	updateEndZone(g)
+	g.GameClockInSeconds = models.QuarterTime
+	g.GameLog = append(g.GameLog, models.GameLog{
+		Event: models.EndofQuarter,
 	})
 	return true
 }
 
-func updateEndZone(gs *GameStatus) {
-	switch gs.HomeTeamEndZone {
-	case WestEndZone:
-		gs.HomeTeamEndZone = EastEndZone
-		gs.AwayTeamEndZone = WestEndZone
-	case EastEndZone:
-		gs.HomeTeamEndZone = WestEndZone
-		gs.AwayTeamEndZone = EastEndZone
+func IncrementDown(g *models.Game) {
+	switch g.CurrentDown {
+	case models.FirstDown:
+		g.CurrentDown = models.SecondDown
+	case models.SecondDown:
+		g.CurrentDown = models.ThirdDown
+	case models.ThirdDown:
+		g.CurrentDown = models.FourthDown
+	case models.FourthDown:
+		g.CurrentDown = models.FirstDown
+		changePosession(g)
 	}
 }
 
-func runPlay(gs *GameStatus, r *rand.Rand) GameLog {
-	return GameLog{
-		Event:        PlayRan,
-		EventEndTime: gs.GameClockInSeconds - (r.Intn(37) + 5),
+func updateEndZone(g *models.Game) {
+	switch g.HomeTeamEndZone {
+	case models.WestEndZone:
+		g.HomeTeamEndZone = models.EastEndZone
+		g.AwayTeamEndZone = models.WestEndZone
+	case models.EastEndZone:
+		g.HomeTeamEndZone = models.WestEndZone
+		g.AwayTeamEndZone = models.EastEndZone
 	}
 }
 
-func initializeGameStatus(reqBody SimulateGameRequest) GameStatus {
-	return GameStatus{
-		HomeTeam:           reqBody.HomeTeam,
-		AwayTeam:           reqBody.AwayTeam,
-		GameOver:           false,
-		Quarter:            First,
-		GameClockInSeconds: QuarterTime,
-		HomeTeamScore:      0,
-		AwayTeamScore:      0,
-		HomeTeamEndZone:    WestEndZone,
-		AwayTeamEndZone:    EastEndZone,
-		CurrentPossession:  HomeTeam,
-		PossessionAtHalf:   AwayTeam,
+func changePosession(g *models.Game) {
+	if g.CurrentPossession == models.HomeTeam {
+		g.CurrentPossession = models.AwayTeam
+	} else {
+		g.CurrentPossession = models.HomeTeam
 	}
 }

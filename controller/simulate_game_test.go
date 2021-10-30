@@ -1,12 +1,16 @@
 package controller
 
 import (
+	"college-football-sim/controller/mocks"
+	"college-football-sim/models"
 	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 // func TestSimulateGame(t *testing.T) {
@@ -52,166 +56,176 @@ import (
 
 func TestRunStep(t *testing.T) {
 	tests := map[string]struct {
-		input GameStatus
-		want  GameStatus
+		input models.Game
+		want  models.Game
 	}{
 		"EndOfFirstQuarter": {
-			input: GameStatus{
+			input: models.Game{
 				GameClockInSeconds: 0,
 				GameOver:           false,
-				Quarter:            First,
+				Quarter:            models.First,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
-				HomeTeamEndZone:    WestEndZone,
-				AwayTeamEndZone:    EastEndZone,
-				CurrentPossession:  HomeTeam,
-				PossessionAtHalf:   AwayTeam,
+				HomeTeamEndZone:    models.WestEndZone,
+				AwayTeamEndZone:    models.EastEndZone,
+				CurrentPossession:  models.HomeTeam,
+				PossessionAtHalf:   models.AwayTeam,
+				CurrentDown:        models.SecondDown,
 			},
-			want: GameStatus{
+			want: models.Game{
 				GameClockInSeconds: 900,
 				GameOver:           false,
-				Quarter:            Second,
+				Quarter:            models.Second,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
-				HomeTeamEndZone:    EastEndZone,
-				AwayTeamEndZone:    WestEndZone,
-				CurrentPossession:  HomeTeam,
-				PossessionAtHalf:   AwayTeam,
-				GameLog: []GameLog{
+				HomeTeamEndZone:    models.EastEndZone,
+				AwayTeamEndZone:    models.WestEndZone,
+				CurrentPossession:  models.HomeTeam,
+				PossessionAtHalf:   models.AwayTeam,
+				CurrentDown:        models.SecondDown,
+				GameLog: []models.GameLog{
 					{
-						Event: PlayRan,
+						Event: models.PlayRan,
 					},
 					{
-						Event: EndofQuarter,
+						Event: models.EndofQuarter,
 					},
 				},
 			},
 		},
 		"EndOfSecondQuarter": {
-			input: GameStatus{
+			input: models.Game{
 				GameClockInSeconds: 0,
 				GameOver:           false,
-				Quarter:            Second,
+				Quarter:            models.Second,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
-				HomeTeamEndZone:    EastEndZone,
-				AwayTeamEndZone:    WestEndZone,
-				CurrentPossession:  HomeTeam,
-				PossessionAtHalf:   AwayTeam,
+				HomeTeamEndZone:    models.EastEndZone,
+				AwayTeamEndZone:    models.WestEndZone,
+				CurrentPossession:  models.HomeTeam,
+				PossessionAtHalf:   models.AwayTeam,
+				CurrentDown:        models.SecondDown,
 			},
-			want: GameStatus{
+			want: models.Game{
 				GameClockInSeconds: 900,
 				GameOver:           false,
-				Quarter:            Third,
+				Quarter:            models.Third,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
-				HomeTeamEndZone:    WestEndZone,
-				AwayTeamEndZone:    EastEndZone,
-				CurrentPossession:  AwayTeam,
-				PossessionAtHalf:   AwayTeam,
-				GameLog: []GameLog{
+				HomeTeamEndZone:    models.WestEndZone,
+				AwayTeamEndZone:    models.EastEndZone,
+				CurrentPossession:  models.AwayTeam,
+				PossessionAtHalf:   models.AwayTeam,
+				CurrentDown:        models.FirstDown,
+				GameLog: []models.GameLog{
 					{
-						Event: PlayRan,
+						Event: models.PlayRan,
 					},
 					{
-						Event: EndofQuarter,
+						Event: models.EndofQuarter,
 					},
 				},
 			},
 		},
 		"EndOfThirdQuarter": {
-			input: GameStatus{
+			input: models.Game{
 				GameClockInSeconds: 0,
 				GameOver:           false,
-				Quarter:            Third,
+				Quarter:            models.Third,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
-				HomeTeamEndZone:    WestEndZone,
-				AwayTeamEndZone:    EastEndZone,
-				CurrentPossession:  HomeTeam,
-				PossessionAtHalf:   AwayTeam,
+				HomeTeamEndZone:    models.WestEndZone,
+				AwayTeamEndZone:    models.EastEndZone,
+				CurrentPossession:  models.HomeTeam,
+				PossessionAtHalf:   models.AwayTeam,
+				CurrentDown:        models.SecondDown,
 			},
-			want: GameStatus{
+			want: models.Game{
 				GameClockInSeconds: 900,
 				GameOver:           false,
-				Quarter:            Fourth,
+				Quarter:            models.Fourth,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
-				HomeTeamEndZone:    EastEndZone,
-				AwayTeamEndZone:    WestEndZone,
-				CurrentPossession:  HomeTeam,
-				PossessionAtHalf:   AwayTeam,
+				HomeTeamEndZone:    models.EastEndZone,
+				AwayTeamEndZone:    models.WestEndZone,
+				CurrentPossession:  models.HomeTeam,
+				PossessionAtHalf:   models.AwayTeam,
+				CurrentDown:        models.SecondDown,
 
-				GameLog: []GameLog{
+				GameLog: []models.GameLog{
 					{
-						Event: PlayRan,
+						Event: models.PlayRan,
 					},
 					{
-						Event: EndofQuarter,
+						Event: models.EndofQuarter,
 					},
 				},
 			},
 		},
 		"EndOfFourthQuarterNotTied": {
-			input: GameStatus{
+			input: models.Game{
 				GameClockInSeconds: 0,
 				GameOver:           false,
-				Quarter:            Fourth,
+				Quarter:            models.Fourth,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
-				HomeTeamEndZone:    WestEndZone,
-				AwayTeamEndZone:    EastEndZone,
-				CurrentPossession:  HomeTeam,
-				PossessionAtHalf:   AwayTeam,
+				HomeTeamEndZone:    models.WestEndZone,
+				AwayTeamEndZone:    models.EastEndZone,
+				CurrentPossession:  models.HomeTeam,
+				PossessionAtHalf:   models.AwayTeam,
+				CurrentDown:        models.SecondDown,
 			},
-			want: GameStatus{
+			want: models.Game{
 				GameClockInSeconds: 0,
 				GameOver:           true,
-				Quarter:            Fourth,
+				Quarter:            models.Fourth,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
-				HomeTeamEndZone:    WestEndZone,
-				AwayTeamEndZone:    EastEndZone,
-				CurrentPossession:  HomeTeam,
-				PossessionAtHalf:   AwayTeam,
-				GameLog: []GameLog{
+				HomeTeamEndZone:    models.WestEndZone,
+				AwayTeamEndZone:    models.EastEndZone,
+				CurrentPossession:  models.HomeTeam,
+				PossessionAtHalf:   models.AwayTeam,
+				CurrentDown:        models.SecondDown,
+				GameLog: []models.GameLog{
 					{
-						Event: PlayRan,
+						Event: models.PlayRan,
 					},
 					{
-						Event: EndOfGame,
+						Event: models.EndOfGame,
 					},
 				},
 			},
 		},
 		"EndOfFourthQuarterTied": {
-			input: GameStatus{
+			input: models.Game{
 				GameClockInSeconds: 0,
 				GameOver:           false,
-				Quarter:            Fourth,
+				Quarter:            models.Fourth,
 				HomeTeamScore:      7,
 				AwayTeamScore:      7,
-				HomeTeamEndZone:    WestEndZone,
-				AwayTeamEndZone:    EastEndZone,
-				CurrentPossession:  HomeTeam,
-				PossessionAtHalf:   AwayTeam,
+				HomeTeamEndZone:    models.WestEndZone,
+				AwayTeamEndZone:    models.EastEndZone,
+				CurrentPossession:  models.HomeTeam,
+				PossessionAtHalf:   models.AwayTeam,
+				CurrentDown:        models.SecondDown,
 			},
-			want: GameStatus{
+			want: models.Game{
 				GameClockInSeconds: 0,
 				GameOver:           false,
-				Quarter:            Overtime1,
+				Quarter:            models.Overtime1,
 				HomeTeamScore:      7,
 				AwayTeamScore:      7,
-				HomeTeamEndZone:    WestEndZone,
-				AwayTeamEndZone:    EastEndZone,
-				CurrentPossession:  HomeTeam,
-				PossessionAtHalf:   AwayTeam,
-				GameLog: []GameLog{
+				HomeTeamEndZone:    models.WestEndZone,
+				AwayTeamEndZone:    models.EastEndZone,
+				CurrentPossession:  models.HomeTeam,
+				PossessionAtHalf:   models.AwayTeam,
+				CurrentDown:        models.FirstDown,
+				GameLog: []models.GameLog{
 					{
-						Event: PlayRan,
+						Event: models.PlayRan,
 					},
 					{
-						Event: EndofRegulationPlay,
+						Event: models.EndofRegulationPlay,
 					},
 				},
 			},
@@ -223,13 +237,17 @@ func TestRunStep(t *testing.T) {
 
 	for name, testData := range tests {
 		t.Run(name, func(t *testing.T) {
-			runStep(&testData.input, r1)
 
-			diff := cmp.Diff(testData.want, testData.input, cmpopts.IgnoreFields(GameLog{}, "EventEndTime"))
+			mockClient := new(mocks.GameClient)
+			mockClient.On("RunPlay", mock.AnythingOfType("*models.Game"), mock.AnythingOfType("*rand.Rand")).Return(models.GameLog{
+				Event: models.PlayRan,
+			}).Once()
 
-			if diff != "" {
-				t.Fatalf(diff)
-			}
+			runStep(mockClient, &testData.input, r1)
+
+			diff := cmp.Diff(testData.want, testData.input, cmpopts.IgnoreFields(models.GameLog{}, "EventEndTime"))
+
+			assert.Empty(t, diff)
 		})
 	}
 }
