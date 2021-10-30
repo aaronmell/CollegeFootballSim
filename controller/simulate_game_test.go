@@ -62,27 +62,15 @@ func TestRunStep(t *testing.T) {
 		"EndOfFirstQuarter": {
 			input: models.Game{
 				GameClockInSeconds: 0,
-				GameOver:           false,
 				Quarter:            models.First,
-				HomeTeamScore:      7,
-				AwayTeamScore:      0,
 				HomeTeamEndZone:    models.WestEndZone,
 				AwayTeamEndZone:    models.EastEndZone,
-				CurrentPossession:  models.HomeTeam,
-				PossessionAtHalf:   models.AwayTeam,
-				CurrentDown:        models.SecondDown,
 			},
 			want: models.Game{
 				GameClockInSeconds: 900,
-				GameOver:           false,
 				Quarter:            models.Second,
-				HomeTeamScore:      7,
-				AwayTeamScore:      0,
 				HomeTeamEndZone:    models.EastEndZone,
 				AwayTeamEndZone:    models.WestEndZone,
-				CurrentPossession:  models.HomeTeam,
-				PossessionAtHalf:   models.AwayTeam,
-				CurrentDown:        models.SecondDown,
 				GameLog: []models.GameLog{
 					{
 						Event: models.PlayRan,
@@ -96,10 +84,7 @@ func TestRunStep(t *testing.T) {
 		"EndOfSecondQuarter": {
 			input: models.Game{
 				GameClockInSeconds: 0,
-				GameOver:           false,
 				Quarter:            models.Second,
-				HomeTeamScore:      7,
-				AwayTeamScore:      0,
 				HomeTeamEndZone:    models.EastEndZone,
 				AwayTeamEndZone:    models.WestEndZone,
 				CurrentPossession:  models.HomeTeam,
@@ -108,10 +93,7 @@ func TestRunStep(t *testing.T) {
 			},
 			want: models.Game{
 				GameClockInSeconds: 900,
-				GameOver:           false,
 				Quarter:            models.Third,
-				HomeTeamScore:      7,
-				AwayTeamScore:      0,
 				HomeTeamEndZone:    models.WestEndZone,
 				AwayTeamEndZone:    models.EastEndZone,
 				CurrentPossession:  models.AwayTeam,
@@ -130,27 +112,15 @@ func TestRunStep(t *testing.T) {
 		"EndOfThirdQuarter": {
 			input: models.Game{
 				GameClockInSeconds: 0,
-				GameOver:           false,
 				Quarter:            models.Third,
-				HomeTeamScore:      7,
-				AwayTeamScore:      0,
 				HomeTeamEndZone:    models.WestEndZone,
 				AwayTeamEndZone:    models.EastEndZone,
-				CurrentPossession:  models.HomeTeam,
-				PossessionAtHalf:   models.AwayTeam,
-				CurrentDown:        models.SecondDown,
 			},
 			want: models.Game{
 				GameClockInSeconds: 900,
-				GameOver:           false,
 				Quarter:            models.Fourth,
-				HomeTeamScore:      7,
-				AwayTeamScore:      0,
 				HomeTeamEndZone:    models.EastEndZone,
 				AwayTeamEndZone:    models.WestEndZone,
-				CurrentPossession:  models.HomeTeam,
-				PossessionAtHalf:   models.AwayTeam,
-				CurrentDown:        models.SecondDown,
 
 				GameLog: []models.GameLog{
 					{
@@ -169,11 +139,6 @@ func TestRunStep(t *testing.T) {
 				Quarter:            models.Fourth,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
-				HomeTeamEndZone:    models.WestEndZone,
-				AwayTeamEndZone:    models.EastEndZone,
-				CurrentPossession:  models.HomeTeam,
-				PossessionAtHalf:   models.AwayTeam,
-				CurrentDown:        models.SecondDown,
 			},
 			want: models.Game{
 				GameClockInSeconds: 0,
@@ -181,11 +146,6 @@ func TestRunStep(t *testing.T) {
 				Quarter:            models.Fourth,
 				HomeTeamScore:      7,
 				AwayTeamScore:      0,
-				HomeTeamEndZone:    models.WestEndZone,
-				AwayTeamEndZone:    models.EastEndZone,
-				CurrentPossession:  models.HomeTeam,
-				PossessionAtHalf:   models.AwayTeam,
-				CurrentDown:        models.SecondDown,
 				GameLog: []models.GameLog{
 					{
 						Event: models.PlayRan,
@@ -203,10 +163,6 @@ func TestRunStep(t *testing.T) {
 				Quarter:            models.Fourth,
 				HomeTeamScore:      7,
 				AwayTeamScore:      7,
-				HomeTeamEndZone:    models.WestEndZone,
-				AwayTeamEndZone:    models.EastEndZone,
-				CurrentPossession:  models.HomeTeam,
-				PossessionAtHalf:   models.AwayTeam,
 				CurrentDown:        models.SecondDown,
 			},
 			want: models.Game{
@@ -215,10 +171,6 @@ func TestRunStep(t *testing.T) {
 				Quarter:            models.Overtime1,
 				HomeTeamScore:      7,
 				AwayTeamScore:      7,
-				HomeTeamEndZone:    models.WestEndZone,
-				AwayTeamEndZone:    models.EastEndZone,
-				CurrentPossession:  models.HomeTeam,
-				PossessionAtHalf:   models.AwayTeam,
 				CurrentDown:        models.FirstDown,
 				GameLog: []models.GameLog{
 					{
