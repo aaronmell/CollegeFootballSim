@@ -230,6 +230,68 @@ func TestRunStep(t *testing.T) {
 				},
 			},
 		},
+		"1stDown": {
+			input: models.Game{
+				GameClockInSeconds: 900,
+				CurrentDown:        models.FirstDown,
+			},
+			want: models.Game{
+				GameClockInSeconds: 900,
+				CurrentDown:        models.SecondDown,
+				GameLog: []models.GameLog{
+					{
+						Event: models.PlayRan,
+					},
+				},
+			},
+		},
+		"2ndDown": {
+			input: models.Game{
+				GameClockInSeconds: 900,
+				CurrentDown:        models.SecondDown,
+			},
+			want: models.Game{
+				GameClockInSeconds: 900,
+				CurrentDown:        models.ThirdDown,
+				GameLog: []models.GameLog{
+					{
+						Event: models.PlayRan,
+					},
+				},
+			},
+		},
+		"3rdDown": {
+			input: models.Game{
+				GameClockInSeconds: 900,
+				CurrentDown:        models.ThirdDown,
+			},
+			want: models.Game{
+				GameClockInSeconds: 900,
+				CurrentDown:        models.FourthDown,
+				GameLog: []models.GameLog{
+					{
+						Event: models.PlayRan,
+					},
+				},
+			},
+		},
+		"4thDown": {
+			input: models.Game{
+				GameClockInSeconds: 900,
+				CurrentPossession:  models.HomeTeam,
+				CurrentDown:        models.FourthDown,
+			},
+			want: models.Game{
+				GameClockInSeconds: 900,
+				CurrentPossession:  models.AwayTeam,
+				CurrentDown:        models.FirstDown,
+				GameLog: []models.GameLog{
+					{
+						Event: models.PlayRan,
+					},
+				},
+			},
+		},
 	}
 
 	s1 := rand.NewSource(time.Now().UnixNano())
