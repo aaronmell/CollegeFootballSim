@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -56,8 +57,9 @@ import (
 
 func TestRunStep(t *testing.T) {
 	tests := map[string]struct {
-		input models.Game
-		want  models.Game
+		input      models.Game
+		newYardage *int
+		want       models.Game
 	}{
 		"EndOfFirstQuarter": {
 			input: models.Game{
@@ -244,6 +246,97 @@ func TestRunStep(t *testing.T) {
 				},
 			},
 		},
+		"4thDownAwayHasPossession": {
+			input: models.Game{
+				GameClockInSeconds: 900,
+				CurrentPossession:  models.AwayTeam,
+				CurrentDown:        models.FourthDown,
+			},
+			want: models.Game{
+				GameClockInSeconds: 900,
+				CurrentPossession:  models.HomeTeam,
+				CurrentDown:        models.FirstDown,
+				GameLog: []models.GameLog{
+					{
+						Event: models.PlayRan,
+					},
+				},
+			},
+		},
+		"4thDownGetsFirstDown": {
+			input: models.Game{
+				GameClockInSeconds: 900,
+				CurrentPossession:  models.HomeTeam,
+				CurrentDown:        models.FourthDown,
+				FirstDownPosition:  decimal.NewFromInt(10),
+				BallPosition:       decimal.NewFromInt(1),
+			},
+			newYardage: createInt(11),
+			want: models.Game{
+				GameClockInSeconds: 900,
+				CurrentPossession:  models.HomeTeam,
+				CurrentDown:        models.FirstDown,
+				GameLog: []models.GameLog{
+					{
+						Event:      models.PlayRan,
+						NewYardage: decimal.NewFromInt(11),
+					},
+				},
+				BallPosition:      decimal.NewFromInt(11),
+				FirstDownPosition: decimal.NewFromInt((21)),
+			},
+		},
+		"FirstDownMax100": {
+			input: models.Game{
+				GameClockInSeconds: 900,
+				CurrentPossession:  models.HomeTeam,
+				CurrentDown:        models.ThirdDown,
+				FirstDownPosition:  decimal.NewFromInt(92),
+				BallPosition:       decimal.NewFromInt(90),
+			},
+			newYardage: createInt(93),
+			want: models.Game{
+				GameClockInSeconds: 900,
+				CurrentPossession:  models.HomeTeam,
+				CurrentDown:        models.FirstDown,
+				GameLog: []models.GameLog{
+					{
+						Event:      models.PlayRan,
+						NewYardage: decimal.NewFromInt(93),
+					},
+				},
+				BallPosition:      decimal.NewFromInt(93),
+				FirstDownPosition: decimal.NewFromInt((100)),
+			},
+		},
+		"KickOffWhenSet": {
+			input: models.Game{
+				RequiresKickOff:   true,
+				CurrentPossession: models.HomeTeam,
+			},
+			want: models.Game{
+				RequiresKickOff: false,
+				GameLog: []models.GameLog{
+					{
+						Event: models.KickOff,
+					},
+				},
+				CurrentPossession: models.AwayTeam,
+			},
+		},
+		"ExtraPointWhenSet": {
+			input: models.Game{
+				RequiresExtraPoint: true,
+			},
+			want: models.Game{
+				RequiresExtraPoint: false,
+				GameLog: []models.GameLog{
+					{
+						Event: models.ExtraPoint,
+					},
+				},
+			},
+		},
 	}
 
 	s1 := rand.NewSource(time.Now().UnixNano())
@@ -252,10 +345,34 @@ func TestRunStep(t *testing.T) {
 	for name, testData := range tests {
 		t.Run(name, func(t *testing.T) {
 
-			mockClient := new(mocks.GameClient)
-			mockClient.On("RunPlay", mock.AnythingOfType("*models.Game"), mock.AnythingOfType("*rand.Rand")).Return(models.GameLog{
+			playRanGameLog := models.GameLog{
 				Event: models.PlayRan,
-			}).Once()
+			}
+
+			if testData.newYardage != nil {
+				playRanGameLog.NewYardage = decimal.NewFromInt(int64(*testData.newYardage))
+			}
+
+			mockClient := new(mocks.GameClient)
+			mockClient.On("RunPlay", mock.AnythingOfType("*models.Game"), mock.AnythingOfType("*rand.Rand")).Return(playRanGameLog).Run(func(args mock.Arguments) {
+				arg := args.Get(0).(*models.Game)
+				arg.BallPosition = playRanGameLog.NewYardage
+			})
+
+			mockClient.On("RunKickOff", mock.AnythingOfType("*models.Game"), mock.AnythingOfType("*rand.Rand")).Return(models.GameLog{
+				Event: models.KickOff,
+			}).Run(func(args mock.Arguments) {
+				arg := args.Get(0).(*models.Game)
+				changePosession(arg)
+				arg.RequiresKickOff = false
+			})
+
+			mockClient.On("RunExtraPoint", mock.AnythingOfType("*models.Game"), mock.AnythingOfType("*rand.Rand")).Return(models.GameLog{
+				Event: models.ExtraPoint,
+			}).Run(func(args mock.Arguments) {
+				arg := args.Get(0).(*models.Game)
+				arg.RequiresExtraPoint = false
+			})
 
 			runStep(mockClient, &testData.input, r1)
 
@@ -264,4 +381,8 @@ func TestRunStep(t *testing.T) {
 			assert.Empty(t, diff)
 		})
 	}
+}
+
+func createInt(x int) *int {
+	return &x
 }

@@ -15,6 +15,34 @@ type GameClient struct {
 	mock.Mock
 }
 
+// RunExtraPoint provides a mock function with given fields: g, r
+func (_m *GameClient) RunExtraPoint(g *models.Game, r *rand.Rand) models.GameLog {
+	ret := _m.Called(g, r)
+
+	var r0 models.GameLog
+	if rf, ok := ret.Get(0).(func(*models.Game, *rand.Rand) models.GameLog); ok {
+		r0 = rf(g, r)
+	} else {
+		r0 = ret.Get(0).(models.GameLog)
+	}
+
+	return r0
+}
+
+// RunKickOff provides a mock function with given fields: g, r
+func (_m *GameClient) RunKickOff(g *models.Game, r *rand.Rand) models.GameLog {
+	ret := _m.Called(g, r)
+
+	var r0 models.GameLog
+	if rf, ok := ret.Get(0).(func(*models.Game, *rand.Rand) models.GameLog); ok {
+		r0 = rf(g, r)
+	} else {
+		r0 = ret.Get(0).(models.GameLog)
+	}
+
+	return r0
+}
+
 // RunPlay provides a mock function with given fields: g, r
 func (_m *GameClient) RunPlay(g *models.Game, r *rand.Rand) models.GameLog {
 	ret := _m.Called(g, r)

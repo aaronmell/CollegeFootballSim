@@ -1,5 +1,9 @@
 package models
 
+import (
+	"github.com/shopspring/decimal"
+)
+
 type Team struct {
 	Name    string `json:"Name" binding:"required"`
 	Overall int    `json:"Overall" binding:"required"`
@@ -29,11 +33,16 @@ type Game struct {
 	CurrentPossession  TeamStatus
 	PossessionAtHalf   TeamStatus
 	CurrentDown        Down
+	BallPosition       decimal.Decimal
+	FirstDownPosition  decimal.Decimal
+	RequiresKickOff    bool
+	RequiresExtraPoint bool
 }
 
 type GameLog struct {
 	Event        GameEvent
 	EventEndTime int
+	NewYardage   decimal.Decimal
 }
 
 type Quarter int
@@ -60,6 +69,9 @@ const (
 	EndofQuarter        GameEvent  = "EndOfQuater"
 	EndofRegulationPlay GameEvent  = "EndofRegulationPlay"
 	PlayRan             GameEvent  = "PlayRan"
+	KickOff             GameEvent  = "KickOff"
+	TouchDown           GameEvent  = "TouchDown"
+	ExtraPoint          GameEvent  = "ExtraPoint"
 	QuarterTime         int        = 900
 	EastEndZone         EndZone    = "EastEndZone"
 	WestEndZone         EndZone    = "WestEndZone"
@@ -85,5 +97,16 @@ func (reqBody SimulateGameRequest) InitGame() Game {
 		CurrentPossession:  HomeTeam,
 		PossessionAtHalf:   AwayTeam,
 		CurrentDown:        FirstDown,
+		BallPosition:       decimal.NewFromInt(35),
+		FirstDownPosition:  decimal.NewFromInt(35),
+		RequiresKickOff:    true,
+		RequiresExtraPoint: true,
 	}
 }
+
+// func (g Game) GetLastEvent() *GameLog {
+// 	if g.GameLog != nil && len(g.GameLog) > 0 {
+// 		return &g.GameLog[len(g.GameLog)-1]
+// 	}
+// 	return nil
+// }

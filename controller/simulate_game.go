@@ -8,12 +8,20 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
+	"github.com/shopspring/decimal"
 )
+
+var firstDownYards = decimal.NewFromInt(10)
+
+// var zeroYards = decimal.NewFromInt(0)
+var hundredYards = decimal.NewFromInt(100)
 
 type SimulateGameController struct{}
 
 type GameClient interface {
 	RunPlay(g *models.Game, r *rand.Rand) models.GameLog
+	RunKickOff(g *models.Game, r *rand.Rand) models.GameLog
+	RunExtraPoint(g *models.Game, r *rand.Rand) models.GameLog
 }
 
 type client struct {
@@ -42,6 +50,19 @@ func (sgc SimulateGameController) SimulateGame(c *gin.Context) {
 }
 
 func runStep(c GameClient, g *models.Game, r1 *rand.Rand) {
+
+	if g.RequiresExtraPoint {
+		event := c.RunExtraPoint(g, r1)
+		g.GameLog = append(g.GameLog, event)
+		return
+	}
+
+	if g.RequiresKickOff {
+		event := c.RunKickOff(g, r1)
+		g.GameLog = append(g.GameLog, event)
+		return
+	}
+
 	event := c.RunPlay(g, r1)
 	g.GameLog = append(g.GameLog, event)
 
@@ -54,7 +75,42 @@ func runStep(c GameClient, g *models.Game, r1 *rand.Rand) {
 	}
 
 	if event.Event == models.PlayRan {
-		IncrementDown(g)
+		isFirstDown := UpdateFirstDown(g)
+		IncrementDown(g, isFirstDown)
+	}
+}
+
+func UpdateFirstDown(g *models.Game) bool {
+	if g.BallPosition.GreaterThan(g.FirstDownPosition) {
+		g.FirstDownPosition = g.BallPosition.Add(firstDownYards)
+
+		if g.FirstDownPosition.GreaterThan(hundredYards) {
+			g.FirstDownPosition = hundredYards
+		}
+
+		return true
+	}
+
+	return false
+}
+
+func (c client) RunExtraPoint(g *models.Game, r *rand.Rand) models.GameLog {
+
+	g.RequiresExtraPoint = false
+	return models.GameLog{
+		Event:        models.ExtraPoint,
+		EventEndTime: g.GameClockInSeconds - (r.Intn(10) + 3),
+	}
+}
+
+func (c client) RunKickOff(g *models.Game, r *rand.Rand) models.GameLog {
+
+	g.RequiresKickOff = false
+	changePosession(g)
+
+	return models.GameLog{
+		Event:        models.KickOff,
+		EventEndTime: g.GameClockInSeconds - (r.Intn(10) + 3),
 	}
 }
 
@@ -120,7 +176,12 @@ func AdvanceQuarter(g *models.Game) bool {
 	return true
 }
 
-func IncrementDown(g *models.Game) {
+func IncrementDown(g *models.Game, firstDown bool) {
+	if firstDown {
+		g.CurrentDown = models.FirstDown
+		return
+	}
+
 	switch g.CurrentDown {
 	case models.FirstDown:
 		g.CurrentDown = models.SecondDown
